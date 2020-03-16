@@ -202,7 +202,7 @@ interface StatusParams {
 }
 
 namespace StatusNotification {
-	export const type = new NotificationType<StatusParams, void>('eslint/status');
+	export const type = new NotificationType<StatusParams, void>('patched/status');
 }
 
 interface NoConfigParams {
@@ -214,7 +214,7 @@ interface NoConfigResult {
 }
 
 namespace NoConfigRequest {
-	export const type = new RequestType<NoConfigParams, NoConfigResult, void, void>('eslint/noConfig');
+	export const type = new RequestType<NoConfigParams, NoConfigResult, void, void>('patched/noConfig');
 }
 
 
@@ -226,7 +226,7 @@ interface NoESLintLibraryResult {
 }
 
 namespace NoESLintLibraryRequest {
-	export const type = new RequestType<NoESLintLibraryParams, NoESLintLibraryResult, void, void>('eslint/noLibrary');
+	export const type = new RequestType<NoESLintLibraryParams, NoESLintLibraryResult, void, void>('patched/noLibrary');
 }
 
 interface OpenESLintDocParams {
@@ -238,18 +238,18 @@ interface OpenESLintDocResult {
 }
 
 namespace OpenESLintDocRequest {
-	export const type = new RequestType<OpenESLintDocParams, OpenESLintDocResult, void, void>('eslint/openDoc');
+	export const type = new RequestType<OpenESLintDocParams, OpenESLintDocResult, void, void>('patched/openDoc');
 }
 
 interface ProbeFailedParams {
 	textDocument: TextDocumentIdentifier;
 }
 
-namespace ProbleFailedRequest {
-	export const type = new RequestType<ProbeFailedParams, void, void, void>('eslint/probleFailed');
+namespace ProbeFailedRequest {
+	export const type = new RequestType<ProbeFailedParams, void, void, void>('patched/probeFailed');
 }
 
-const exitCalled = new NotificationType<[number, string], void>('eslint/exitCalled');
+const exitCalled = new NotificationType<[number, string], void>('patched/exitCalled');
 
 
 interface WorkspaceFolderItem extends QuickPickItem {
@@ -274,57 +274,57 @@ async function pickFolder(folders: VWorkspaceFolder[], placeHolder: string): Pro
 function enable() {
 	const folders = Workspace.workspaceFolders;
 	if (!folders) {
-		Window.showWarningMessage('ESLint can only be enabled if VS Code is opened on a workspace folder.');
+		Window.showWarningMessage('Patched can only be enabled if VS Code is opened on a workspace folder.');
 		return;
 	}
-	const disabledFolders = folders.filter(folder => !Workspace.getConfiguration('eslint', folder.uri).get('enable', true));
+	const disabledFolders = folders.filter(folder => !Workspace.getConfiguration('patched', folder.uri).get('enable', true));
 	if (disabledFolders.length === 0) {
 		if (folders.length === 1) {
-			Window.showInformationMessage('ESLint is already enabled in the workspace.');
+			Window.showInformationMessage('Patched is already enabled in the workspace.');
 		} else {
-			Window.showInformationMessage('ESLint is already enabled on all workspace folders.');
+			Window.showInformationMessage('Patched is already enabled on all workspace folders.');
 		}
 		return;
 	}
-	pickFolder(disabledFolders, 'Select a workspace folder to enable ESLint for').then(folder => {
+	pickFolder(disabledFolders, 'Select a workspace folder to enable Patched for').then(folder => {
 		if (!folder) {
 			return;
 		}
-		Workspace.getConfiguration('eslint', folder.uri).update('enable', true);
+		Workspace.getConfiguration('patched', folder.uri).update('enable', true);
 	});
 }
 
 function disable() {
 	const folders = Workspace.workspaceFolders;
 	if (!folders) {
-		Window.showErrorMessage('ESLint can only be disabled if VS Code is opened on a workspace folder.');
+		Window.showErrorMessage('Patched can only be disabled if VS Code is opened on a workspace folder.');
 		return;
 	}
-	const enabledFolders = folders.filter(folder => Workspace.getConfiguration('eslint', folder.uri).get('enable', true));
+	const enabledFolders = folders.filter(folder => Workspace.getConfiguration('patched', folder.uri).get('enable', true));
 	if (enabledFolders.length === 0) {
 		if (folders.length === 1) {
-			Window.showInformationMessage('ESLint is already disabled in the workspace.');
+			Window.showInformationMessage('Patched is already disabled in the workspace.');
 		} else {
-			Window.showInformationMessage('ESLint is already disabled on all workspace folders.');
+			Window.showInformationMessage('Patched is already disabled on all workspace folders.');
 		}
 		return;
 	}
-	pickFolder(enabledFolders, 'Select a workspace folder to disable ESLint for').then(folder => {
+	pickFolder(enabledFolders, 'Select a workspace folder to disable Patched for').then(folder => {
 		if (!folder) {
 			return;
 		}
-		Workspace.getConfiguration('eslint', folder.uri).update('enable', false);
+		Workspace.getConfiguration('patched', folder.uri).update('enable', false);
 	});
 }
 
 function createDefaultConfiguration(): void {
 	const folders = Workspace.workspaceFolders;
 	if (!folders) {
-		Window.showErrorMessage('An ESLint configuration can only be generated if VS Code is opened on a workspace folder.');
+		Window.showErrorMessage('An Patched configuration can only be generated if VS Code is opened on a workspace folder.');
 		return;
 	}
 	const noConfigFolders = folders.filter(folder => {
-		const configFiles = ['.eslintrc.js', '.eslintrc.yaml', '.eslintrc.yml', '.eslintrc', '.eslintrc.json'];
+		const configFiles = ['.patchedrc.js', '.patchedrc.yaml', '.patchedrc.yml', '.patchedrc', '.patchedrc.json'];
 		for (const configFile of configFiles) {
 			if (fs.existsSync(path.join(folder.uri.fsPath, configFile))) {
 				return false;
@@ -334,19 +334,19 @@ function createDefaultConfiguration(): void {
 	});
 	if (noConfigFolders.length === 0) {
 		if (folders.length === 1) {
-			Window.showInformationMessage('The workspace already contains an ESLint configuration file.');
+			Window.showInformationMessage('The workspace already contains an Patched configuration file.');
 		} else {
-			Window.showInformationMessage('All workspace folders already contain an ESLint configuration file.');
+			Window.showInformationMessage('All workspace folders already contain an Patched configuration file.');
 		}
 		return;
 	}
-	pickFolder(noConfigFolders, 'Select a workspace folder to generate a ESLint configuration for').then(async (folder) => {
+	pickFolder(noConfigFolders, 'Select a workspace folder to generate a Patched configuration for').then(async (folder) => {
 		if (!folder) {
 			return;
 		}
 		const folderRootPath = folder.uri.fsPath;
 		const terminal = Window.createTerminal({
-			name: `ESLint init`,
+			name: `Patched init`,
 			cwd: folderRootPath
 		});
 		const eslintCommand = await findEslint(folderRootPath);
@@ -359,7 +359,7 @@ let dummyCommands: Disposable[] | undefined;
 
 const probeFailed: Set<string> = new Set();
 function computeValidate(textDocument: TextDocument): Validate {
-	const config = Workspace.getConfiguration('eslint', textDocument.uri);
+	const config = Workspace.getConfiguration('patched', textDocument.uri);
 	if (!config.get('enable', true)) {
 		return Validate.off;
 	}
@@ -421,16 +421,16 @@ export function activate(context: ExtensionContext) {
 	const openListener: Disposable = Workspace.onDidOpenTextDocument(didOpenTextDocument);
 	const configurationListener: Disposable = Workspace.onDidChangeConfiguration(configurationChanged);
 
-	const notValidating = () => Window.showInformationMessage('ESLint is not running. By default only JavaScript files are validated. If you want to validate other file types please specify them in the \'eslint.validate\' setting.');
+	const notValidating = () => Window.showInformationMessage('Patched is not running. By default only JavaScript files are validated. If you want to validate other file types please specify them in the \'patched.validate\' setting.');
 	dummyCommands = [
-		Commands.registerCommand('eslint.executeAutofix', notValidating),
-		Commands.registerCommand('eslint.showOutputChannel', notValidating)
+		Commands.registerCommand('patched.executeAutofix', notValidating),
+		Commands.registerCommand('patched.showOutputChannel', notValidating)
 	];
 
 	context.subscriptions.push(
-		Commands.registerCommand('eslint.createConfig', createDefaultConfiguration),
-		Commands.registerCommand('eslint.enable', enable),
-		Commands.registerCommand('eslint.disable', disable)
+		Commands.registerCommand('patched.createConfig', createDefaultConfiguration),
+		Commands.registerCommand('patched.enable', enable),
+		Commands.registerCommand('patched.disable', disable)
 	);
 	taskProvider = new TaskProvider();
 	taskProvider.start();
@@ -456,7 +456,7 @@ interface MigrationData<T> {
 
 interface CodeActionsOnSave {
 	'source.fixAll'?: boolean;
-	'source.fixAll.eslint'?: boolean;
+	'source.fixAll.patched'?: boolean;
 	[key: string]: boolean | undefined;
 }
 
@@ -500,7 +500,7 @@ class Migration {
 
 	constructor(resource: Uri) {
 		this.workspaceConfig = Workspace.getConfiguration(undefined, resource);
-		this.eslintConfig = Workspace.getConfiguration('eslint', resource);
+		this.eslintConfig = Workspace.getConfiguration('patched', resource);
 		this.editorConfig = Workspace.getConfiguration('editor', resource);
 		this.codeActionOnSave = MigrationData.create(this.editorConfig.inspect<CodeActionsOnSave>('codeActionsOnSave'));
 		this.autoFixOnSave = MigrationData.create(this.eslintConfig.inspect<boolean>('autoFixOnSave'));
@@ -522,7 +522,7 @@ class Migration {
 	private recordAutoFixOnSave(): [boolean, boolean, boolean] {
 		function record(this: void, elem: MigrationElement<boolean>, setting: MigrationElement<CodeActionsOnSave>): boolean {
 			// if it is explicitly set to false don't convert anything anymore
-			if (setting.value?.['source.fixAll.eslint'] === false) {
+			if (setting.value?.['source.fixAll.patched'] === false) {
 				return false;
 			}
 			if (!Is.objectLiteral(setting.value)) {
@@ -531,10 +531,10 @@ class Migration {
 			const autoFix: boolean = !!elem.value;
 			const sourceFixAll: boolean = !!setting.value['source.fixAll'];
 			let result: boolean;
-			if (autoFix !== sourceFixAll && autoFix && setting.value['source.fixAll.eslint'] === undefined){
-				setting.value['source.fixAll.eslint'] = elem.value;
+			if (autoFix !== sourceFixAll && autoFix && setting.value['source.fixAll.patched'] === undefined){
+				setting.value['source.fixAll.patched'] = elem.value;
 				setting.changed = true;
-				result = !!setting.value['source.fixAll.eslint'];
+				result = !!setting.value['source.fixAll.patched'];
 			} else {
 				result = !!setting.value['source.fixAll'];
 			}
@@ -567,8 +567,8 @@ class Migration {
 					if (!Is.objectLiteral(setting.value)) {
 						setting.value = Object.create(null);
 					}
-					if (setting.value!['source.fixAll.eslint'] !== false) {
-						setting.value![`source.fixAll.eslint`] = false;
+					if (setting.value!['source.fixAll.patched'] !== false) {
+						setting.value![`source.fixAll.patched`] = false;
 						setting.changed = true;
 					}
 				}
@@ -721,8 +721,8 @@ function realActivate(context: ExtensionContext): void {
 	let eslintStatus: Status = Status.ok;
 	let serverRunning: boolean = false;
 
-	statusBarItem.text = 'ESLint';
-	statusBarItem.command = 'eslint.showOutputChannel';
+	statusBarItem.text = 'Patched';
+	statusBarItem.command = 'patched.showOutputChannel';
 
 	function showStatusBarItem(show: boolean): void {
 		if (show) {
@@ -736,23 +736,23 @@ function realActivate(context: ExtensionContext): void {
 		eslintStatus = status;
 		switch (status) {
 			case Status.ok:
-				statusBarItem.text = 'ESLint';
+				statusBarItem.text = 'Patched';
 				break;
 			case Status.warn:
-				statusBarItem.text = '$(alert) ESLint';
+				statusBarItem.text = '$(alert) Patched';
 				break;
 			case Status.error:
-				statusBarItem.text = '$(issue-opened) ESLint';
+				statusBarItem.text = '$(issue-opened) Patched';
 				break;
 			default:
-				statusBarItem.text = 'ESLint';
+				statusBarItem.text = 'Patched';
 		}
 		updateStatusBarVisibility();
 	}
 
 	function updateStatusBarVisibility(): void {
 		showStatusBarItem(
-			(serverRunning && eslintStatus !== Status.ok) || Workspace.getConfiguration('eslint').get('alwaysShowStatus', false)
+			(serverRunning && eslintStatus !== Status.ok) || Workspace.getConfiguration('patched').get('alwaysShowStatus', false)
 		);
 	}
 
@@ -762,13 +762,13 @@ function realActivate(context: ExtensionContext): void {
 		if (languageConfig !== undefined) {
 			const codeActionsOnSave = languageConfig?.['editor.codeActionsOnSave'];
 			if (codeActionsOnSave !== undefined) {
-				result = codeActionsOnSave['source.fixAll.eslint'] ?? codeActionsOnSave['source.fixAll'];
+				result = codeActionsOnSave['source.fixAll.patched'] ?? codeActionsOnSave['source.fixAll'];
 			}
 		}
 		if (result === undefined) {
 			const codeActionsOnSave = Workspace.getConfiguration('editor', document.uri).get<CodeActionsOnSave>('codeActionsOnSave');
 			if (codeActionsOnSave !== undefined) {
-				result = codeActionsOnSave[`source.fixAll.eslint`] ?? codeActionsOnSave['source.fixAll'];
+				result = codeActionsOnSave[`source.fixAll.patched`] ?? codeActionsOnSave['source.fixAll'];
 			}
 		}
 		return result ?? false;
@@ -776,7 +776,7 @@ function realActivate(context: ExtensionContext): void {
 
 	function migrationFailed(error: any): void {
 		client.error(error.message ?? 'Unknown error', error);
-		Window.showErrorMessage('ESLint settings migration failed. Please see the ESLint output channel for further details', 'Open Channel').then((selected) => {
+		Window.showErrorMessage('Patched settings migration failed. Please see the Patched output channel for further details', 'Open Channel').then((selected) => {
 			if (selected === undefined) {
 				return;
 			}
@@ -788,7 +788,7 @@ function realActivate(context: ExtensionContext): void {
 	async function migrateSettings(): Promise<void> {
 		const folders = Workspace.workspaceFolders;
 		if (folders === undefined) {
-			Window.showErrorMessage('ESLint settings can only be converted if VS Code is opened on a workspace folder.');
+			Window.showErrorMessage('Patched settings can only be converted if VS Code is opened on a workspace folder.');
 			return;
 		}
 
@@ -810,15 +810,15 @@ function realActivate(context: ExtensionContext): void {
 	// We need to go one level up since an extension compile the js code into
 	// the output folder.
 	// serverModule
-	const serverModule = context.asAbsolutePath(path.join('server', 'out', 'eslintServer.js'));
-	const eslintConfig = Workspace.getConfiguration('eslint');
+	const serverModule = context.asAbsolutePath(path.join('server', 'out', 'patchedServer.js'));
+	const eslintConfig = Workspace.getConfiguration('patched');
 	const runtime = eslintConfig.get('runtime', undefined);
 	const debug = eslintConfig.get('debug');
 
 	let env: { [key: string]: string | number | boolean } | undefined;
 	if (debug) {
 		env = {
-			DEBUG: 'eslint:*,-eslint:code-path'
+			DEBUG: 'patched:*,-patched:code-path'
 		};
 	}
 	const serverOptions: ServerOptions = {
@@ -830,7 +830,7 @@ function realActivate(context: ExtensionContext): void {
 	let serverCalledProcessExit: boolean = false;
 
 	const packageJsonFilter: DocumentFilter = { scheme: 'file', pattern: '**/package.json' };
-	const configFileFilter: DocumentFilter = { scheme: 'file', pattern: '**/.eslintr{c.js,c.yaml,c.yml,c,c.json}' };
+	const configFileFilter: DocumentFilter = { scheme: 'file', pattern: '**/.patchedr{c.js,c.yaml,c.yml,c,c.json}' };
 	const syncedDocuments: Map<string, TextDocument> = new Map<string, TextDocument>();
 
 	Workspace.onDidChangeConfiguration(() => {
@@ -852,19 +852,19 @@ function realActivate(context: ExtensionContext): void {
 	let migration: Migration | undefined;
 	const migrationSemaphore: Semaphore<void> = new Semaphore<void>(1);
 	let notNow: boolean = false;
-	const supportedQuickFixKinds: Set<string> = new Set([CodeActionKind.Source.value, CodeActionKind.SourceFixAll.value, `${CodeActionKind.SourceFixAll.value}.eslint`, CodeActionKind.QuickFix.value]);
+	const supportedQuickFixKinds: Set<string> = new Set([CodeActionKind.Source.value, CodeActionKind.SourceFixAll.value, `${CodeActionKind.SourceFixAll.value}.patched`, CodeActionKind.QuickFix.value]);
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [{ scheme: 'file' }, { scheme: 'untitled' }],
-		diagnosticCollectionName: 'eslint',
+		diagnosticCollectionName: 'patched',
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		initializationOptions: {
 		},
 		progressOnInitialization: true,
 		synchronize: {
-			// configurationSection: 'eslint',
+			// configurationSection: 'patched',
 			fileEvents: [
-				Workspace.createFileSystemWatcher('**/.eslintr{c.js,c.yaml,c.yml,c,c.json}'),
-				Workspace.createFileSystemWatcher('**/.eslintignore'),
+				Workspace.createFileSystemWatcher('**/.patchedr{c.js,c.yaml,c.yml,c,c.json}'),
+				Workspace.createFileSystemWatcher('**/.patchedignore'),
 				Workspace.createFileSystemWatcher('**/package.json')
 			]
 		},
@@ -933,7 +933,7 @@ function realActivate(context: ExtensionContext): void {
 				}
 				const eslintDiagnostics: Diagnostic[] = [];
 				for (const diagnostic of context.diagnostics) {
-					if (diagnostic.source === 'eslint') {
+					if (diagnostic.source === 'patched') {
 						eslintDiagnostics.push(diagnostic);
 					}
 				}
@@ -969,10 +969,10 @@ function realActivate(context: ExtensionContext): void {
 							continue;
 						}
 						const resource = client.protocol2CodeConverter.asUri(item.scopeUri);
-						const config = Workspace.getConfiguration('eslint', resource);
+						const config = Workspace.getConfiguration('patched', resource);
 						const workspaceFolder = Workspace.getWorkspaceFolder(resource);
 						await migrationSemaphore.lock(async () => {
-							const globalMigration = Workspace.getConfiguration('eslint').get('migration.2_x', 'on');
+							const globalMigration = Workspace.getConfiguration('patched').get('migration.2_x', 'on');
 							if (notNow === false && globalMigration === 'on'  /*&& !(workspaceFolder !== undefined ? noMigrationLocal!.workspaces[workspaceFolder.uri.toString()] : noMigrationLocal!.files[resource.toString()]) */) {
 								try {
 									migration = new Migration(resource);
@@ -985,7 +985,7 @@ function realActivate(context: ExtensionContext): void {
 										const file = path.basename(resource.fsPath);
 										const selected = await Window.showInformationMessage<Item>(
 											[
-												`The ESLint 'autoFixOnSave' setting needs to be migrated to the new 'editor.codeActionsOnSave' setting`,
+												`The Patched 'autoFixOnSave' setting needs to be migrated to the new 'editor.codeActionsOnSave' setting`,
 												folder !== undefined ? `for the workspace folder: ${folder}.` : `for the file: ${file}.`,
 												`For compatibility reasons the 'autoFixOnSave' remains and needs to be removed manually.`,
 												`Do you want to migrate the setting?`
@@ -1140,15 +1140,15 @@ function realActivate(context: ExtensionContext): void {
 
 	let client: LanguageClient;
 	try {
-		client = new LanguageClient('ESLint', serverOptions, clientOptions);
+		client = new LanguageClient('Patched', serverOptions, clientOptions);
 	} catch (err) {
-		Window.showErrorMessage(`The ESLint extension couldn't be started. See the ESLint output channel for details.`);
+		Window.showErrorMessage(`The Patched extension couldn't be started. See the Patched output channel for details.`);
 		return;
 	}
 	client.registerProposedFeatures();
 	defaultErrorHandler = client.createDefaultErrorHandler();
-	const running = 'ESLint server is running.';
-	const stopped = 'ESLint server stopped.';
+	const running = 'Patched server is running.';
+	const stopped = 'Patched server stopped.';
 	client.onDidChangeState((event) => {
 		if (event.newState === ClientState.Running) {
 			client.info(running);
@@ -1168,8 +1168,8 @@ function realActivate(context: ExtensionContext): void {
 
 		client.onNotification(exitCalled, (params) => {
 			serverCalledProcessExit = true;
-			client.error(`Server process exited with code ${params[0]}. This usually indicates a misconfigured ESLint setup.`, params[1]);
-			Window.showErrorMessage(`ESLint server shut down itself. See 'ESLint' output channel for details.`);
+			client.error(`Server process exited with code ${params[0]}. This usually indicates a misconfigured Patched setup.`, params[1]);
+			Window.showErrorMessage(`Patched server shut down itself. See 'Patched' output channel for details.`);
 		});
 
 		client.onRequest(NoConfigRequest.type, (params) => {
@@ -1179,15 +1179,15 @@ function realActivate(context: ExtensionContext): void {
 			if (workspaceFolder) {
 				client.warn([
 					'',
-					`No ESLint configuration (e.g .eslintrc) found for file: ${fileLocation}`,
-					`File will not be validated. Consider running 'eslint --init' in the workspace folder ${workspaceFolder.name}`,
-					`Alternatively you can disable ESLint by executing the 'Disable ESLint' command.`
+					`No Patched configuration (e.g .patchedrc) found for file: ${fileLocation}`,
+					`File will not be validated. Consider running 'patched --init' in the workspace folder ${workspaceFolder.name}`,
+					`Alternatively you can disable Patched by executing the 'Disable Patched' command.`
 				].join('\n'));
 			} else {
 				client.warn([
 					'',
-					`No ESLint configuration (e.g .eslintrc) found for file: ${fileLocation}`,
-					`File will not be validated. Alternatively you can disable ESLint by executing the 'Disable ESLint' command.`
+					`No Patched configuration (e.g .patchedrc) found for file: ${fileLocation}`,
+					`File will not be validated. Alternatively you can disable Patched by executing the 'Disable Patched' command.`
 				].join('\n'));
 			}
 			eslintStatus = Status.warn;
@@ -1200,16 +1200,16 @@ function realActivate(context: ExtensionContext): void {
 			const state = context.globalState.get<NoESLintState>(key, {});
 			const uri: Uri = Uri.parse(params.source.uri);
 			const workspaceFolder = Workspace.getWorkspaceFolder(uri);
-			const packageManager = Workspace.getConfiguration('eslint', uri).get('packageManager', 'npm');
+			const packageManager = Workspace.getConfiguration('patched', uri).get('packageManager', 'npm');
 			const localInstall = {
-				npm: 'npm install eslint',
-				pnpm: 'pnpm install eslint',
-				yarn: 'yarn add eslint',
+				npm: 'npm install patched',
+				pnpm: 'pnpm install patched',
+				yarn: 'yarn add patched',
 			};
 			const globalInstall = {
-				npm: 'npm install -g eslint',
-				pnpm: 'pnpm install -g eslint',
-				yarn: 'yarn global add eslint'
+				npm: 'npm install -g patched',
+				pnpm: 'pnpm install -g patched',
+				yarn: 'yarn global add patched'
 			};
 			const isPackageManagerNpm = packageManager === 'npm';
 			interface ButtonItem extends MessageItem {
@@ -1222,13 +1222,13 @@ function realActivate(context: ExtensionContext): void {
 			if (workspaceFolder) {
 				client.info([
 					'',
-					`Failed to load the ESLint library for the document ${uri.fsPath}`,
+					`Failed to load the Patched library for the document ${uri.fsPath}`,
 					'',
-					`To use ESLint please install eslint by running ${localInstall[packageManager]} in the workspace folder ${workspaceFolder.name}`,
-					`or globally using '${globalInstall[packageManager]}'. You need to reopen the workspace after installing eslint.`,
+					`To use Patched please install patched by running ${localInstall[packageManager]} in the workspace folder ${workspaceFolder.name}`,
+					`or globally using '${globalInstall[packageManager]}'. You need to reopen the workspace after installing patched.`,
 					'',
-					isPackageManagerNpm ? 'If you are using yarn or pnpm instead of npm set the setting `eslint.packageManager` to either `yarn` or `pnpm`' : null,
-					`Alternatively you can disable ESLint for the workspace folder ${workspaceFolder.name} by executing the 'Disable ESLint' command.`
+					isPackageManagerNpm ? 'If you are using yarn or pnpm instead of npm set the setting `patched.packageManager` to either `yarn` or `pnpm`' : null,
+					`Alternatively you can disable Patched for the workspace folder ${workspaceFolder.name} by executing the 'Disable Patched' command.`
 				].filter((str => (str !== null))).join('\n'));
 
 				if (state.workspaces === undefined) {
@@ -1237,7 +1237,7 @@ function realActivate(context: ExtensionContext): void {
 				if (!state.workspaces[workspaceFolder.uri.toString()]) {
 					state.workspaces[workspaceFolder.uri.toString()] = true;
 					context.globalState.update(key, state);
-					Window.showInformationMessage(`Failed to load the ESLint library for the document ${uri.fsPath}. See the output for more information.`, outputItem).then((item) => {
+					Window.showInformationMessage(`Failed to load the Patched library for the document ${uri.fsPath}. See the output for more information.`, outputItem).then((item) => {
 						if (item && item.id === 1) {
 							client.outputChannel.show(true);
 						}
@@ -1245,16 +1245,16 @@ function realActivate(context: ExtensionContext): void {
 				}
 			} else {
 				client.info([
-					`Failed to load the ESLint library for the document ${uri.fsPath}`,
-					`To use ESLint for single JavaScript file install eslint globally using '${globalInstall[packageManager]}'.`,
-					isPackageManagerNpm ? 'If you are using yarn or pnpm instead of npm set the setting `eslint.packageManager` to either `yarn` or `pnpm`' : null,
-					'You need to reopen VS Code after installing eslint.',
+					`Failed to load the Patched library for the document ${uri.fsPath}`,
+					`To use Patched for single JavaScript file install Patched globally using '${globalInstall[packageManager]}'.`,
+					isPackageManagerNpm ? 'If you are using yarn or pnpm instead of npm set the setting `patched.packageManager` to either `yarn` or `pnpm`' : null,
+					'You need to reopen VS Code after installing Patched.',
 				].filter((str => (str !== null))).join('\n'));
 
 				if (!state.global) {
 					state.global = true;
 					context.globalState.update(key, state);
-					Window.showInformationMessage(`Failed to load the ESLint library for the document ${uri.fsPath}. See the output for more information.`, outputItem).then((item) => {
+					Window.showInformationMessage(`Failed to load the Patched library for the document ${uri.fsPath}. See the output for more information.`, outputItem).then((item) => {
 						if (item && item.id === 1) {
 							client.outputChannel.show(true);
 						}
@@ -1269,7 +1269,7 @@ function realActivate(context: ExtensionContext): void {
 			return {};
 		});
 
-		client.onRequest(ProbleFailedRequest.type, (params) => {
+		client.onRequest(ProbeFailedRequest.type, (params) => {
 			probeFailed.add(params.textDocument.uri);
 			const closeFeature = client.getFeature(DidCloseTextDocumentNotification.method);
 			for (const document of Workspace.textDocuments) {
@@ -1289,7 +1289,7 @@ function realActivate(context: ExtensionContext): void {
 
 	context.subscriptions.push(
 		client.start(),
-		Commands.registerCommand('eslint.executeAutofix', () => {
+		Commands.registerCommand('patched.executeAutofix', () => {
 			const textEditor = Window.activeTextEditor;
 			if (!textEditor) {
 				return;
@@ -1299,15 +1299,15 @@ function realActivate(context: ExtensionContext): void {
 				version: textEditor.document.version
 			};
 			const params: ExecuteCommandParams = {
-				command: 'eslint.applyAllFixes',
+				command: 'patched.applyAllFixes',
 				arguments: [textDocument]
 			};
 			client.sendRequest(ExecuteCommandRequest.type, params).then(undefined, () => {
-				Window.showErrorMessage('Failed to apply ESLint fixes to the document. Please consider opening an issue with steps to reproduce.');
+				Window.showErrorMessage('Failed to apply Patched fixes to the document. Please consider opening an issue with steps to reproduce.');
 			});
 		}),
-		Commands.registerCommand('eslint.showOutputChannel', () => { client.outputChannel.show(); }),
-		Commands.registerCommand('eslint.migrateSettings', () => {
+		Commands.registerCommand('patched.showOutputChannel', () => { client.outputChannel.show(); }),
+		Commands.registerCommand('patched.migrateSettings', () => {
 			migrateSettings();
 		}),
 		statusBarItem

@@ -20,7 +20,7 @@ class FolderTaskProvider {
 	}
 
 	public isEnabled(): boolean {
-		const config = vscode.workspace.getConfiguration('eslint', this._workspaceFolder.uri);
+		const config = vscode.workspace.getConfiguration('patched', this._workspaceFolder.uri);
 		return config.get<boolean>('lintTask.enable', false) ?? config.get<boolean>('provideLintTask', false);
 	}
 
@@ -39,16 +39,16 @@ class FolderTaskProvider {
 			const command = await findEslint(rootPath);
 
 			const kind: EslintTaskDefinition = {
-				type: 'eslint'
+				type: 'patched'
 			};
 
 			const options: vscode.ShellExecutionOptions = { cwd: this.workspaceFolder.uri.fsPath };
-			const config = vscode.workspace.getConfiguration('eslint', this._workspaceFolder.uri);
+			const config = vscode.workspace.getConfiguration('patched', this._workspaceFolder.uri);
 			const lintTaskOptions= config.get('lintTask.options', '.');
 			return new vscode.Task(
 				kind, this.workspaceFolder,
-				'lint whole folder', 'eslint', new vscode.ShellExecution(`${command} ${lintTaskOptions}`, options),
-				'$eslint-stylish'
+				'lint whole folder', 'patched', new vscode.ShellExecution(`${command} ${lintTaskOptions}`, options),
+				'$patched-stylish'
 			);
 		} catch (error) {
 			return undefined;
@@ -123,7 +123,7 @@ export class TaskProvider {
 
 	private updateProvider(): void {
 		if (!this.taskProvider && this.providers.size > 0) {
-			this.taskProvider = vscode.workspace.registerTaskProvider('eslint', {
+			this.taskProvider = vscode.workspace.registerTaskProvider('patched', {
 				provideTasks: () => {
 					return this.getTasks();
 				},
